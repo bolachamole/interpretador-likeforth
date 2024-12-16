@@ -29,7 +29,7 @@ class ForthVirtualMachine:
     def stacks(self):
         return self.d_stack, self.r_stack
 
-        # Empilha em D o resultado da soma
+    # Empilha em D o resultado da soma
     def plus(self):
         D, R = self.stacks()
         try:
@@ -89,7 +89,7 @@ class ForthVirtualMachine:
         D, R = self.stacks()
         try:
             a = D.pop()
-            D.push(np.sqrt(n1))
+            D.push(np.sqrt(a))
             return True
         except IndexError:
             return False
@@ -206,19 +206,19 @@ class ForthVirtualMachine:
         except IndexError:
             return False
     
-    # Empilha -1 em D
+    # true Empilha -1 em D
     def true(self):
         D, R = self.stacks()
         D.push(-1)
         return True
 
-    # Empilha 0 em D
+    # false Empilha 0 em D
     def false(self):
         D, R = self.stacks()
         D.push(0)
         return True
             
-    # Copia n-esimo valor pro topo de D (2 PICK com a b c -- a b c a)
+    # pick Copia n-esimo valor pro topo de D (2 PICK com a b c -- a b c a)
     def pick(self):
         D, R = self.stacks()
         try:
@@ -227,19 +227,25 @@ class ForthVirtualMachine:
         except IndexError:
             return False
 
-    # Duplica valor no topo de D (a -- a )
+    # dup Duplica valor no topo de D (a -- a)
     def dup(self):
         D, R = self.stacks()
-        D.push(D.top())
-        return True
+        try:
+            D.push(D.top())
+            return True
+        except IndexError:
+            return False
 
-    # Copia número abaixo do topo de D para o topo (a b – a b a)
+    # over Copia número abaixo do topo de D para o topo (a b –- a b a)
     def over(self):
         D, R = self.stacks()
-        D.push( D.index(-2) )
-        return True
+        try:
+            D.push( D.index(-2) )
+            return True
+        except IndexError:
+            return False
 
-    # Troca valores no topo de D (a b -- b a)
+    # swap Troca valores no topo de D (a b -- b a)
     def swap(self):
         D, R = self.stacks()
         try:
@@ -251,7 +257,7 @@ class ForthVirtualMachine:
         except IndexError:
             return False
 
-    # Rotaciona top-3 valores na pilha D (a b c d -- a d b c)
+    # rot Rotaciona top-3 valores na pilha D (a b c d -- a d b c)
     def rot(self):
         D, R = self.stacks()
         try:
@@ -265,7 +271,7 @@ class ForthVirtualMachine:
         except IndexError:
             return False
     
-    # Desempilha valor no topo da pilha D (a b -- a)
+    # drop Desempilha valor no topo da pilha D
     def drop(self):
         D, R = self.stacks()
         try:
@@ -274,7 +280,7 @@ class ForthVirtualMachine:
         except IndexError:
             return False
 
-    # Move topo de D para pilha de resultados R
+    # >r Move topo de D para pilha de resultados R
     def dtor(self):
         D, R = self.stacks()
         try:
@@ -284,7 +290,7 @@ class ForthVirtualMachine:
         except IndexError:
             return False
 
-    # Move topo de R para pilha de dados D
+    # r> Move topo de R para pilha de dados D
     def rtod(self):
         D, R = self.stacks()
         try:
@@ -294,28 +300,34 @@ class ForthVirtualMachine:
         except IndexError:
             return False
 
-    # Copia topo de R para pilha de dados D
+    # r@ Copia topo de R para pilha de dados D
     def rat(self):
         D, R = self.stacks()
-        a = R.top()
-        D.push(a)
-        return True
+        try:
+            a = R.top()
+            D.push(a)
+            return True
+        except IndexError:
+            return False
 
-    # Empilha valor aleatório entre 0 e o valor no topo da pilha D
+    # rand Empilha valor aleatório entre 0 e o valor no topo da pilha D
     def rand(self):
         D, R = self.stacks()
-        rng = np.random.randint(0, D.pop())
-        D.push(rng)
-        return True
+        try:
+            rng = np.random.randint(0, D.pop())
+            D.push(float(rng))
+            return True
+        except IndexError:
+            return False
 
-    # Limpa as pilhas
+    # clear Limpa as pilhas
     def clear(self):
         D, R = self.stacks()
         D.empty()
         R.empty()
         return True
 
-    # Salta uma linha (mesmo que imprimir ‘\n’ no C/C++)
+    # cr Salta uma linha (mesmo que imprimir ‘\n’ no C/C++)
     def cr(self):
         print('\n')
         return True
@@ -497,13 +509,13 @@ class LikeForthInterpreter(object):
         return False
 
     # Quebra a string em tokens
-    def tokenize(self, s):
-        def string_to_num(s):
+    def tokenize(self, tokens):
+        def string_to_num(tokens):
             try:
-                return float(s)
+                return float(tokens)
             except ValueError:
-                return s
-        return [string_to_num(t) for t in s.split()]
+                return tokens
+        return [string_to_num(t) for t in tokens.split()]
 
     # Função REPL
     def REPL(self):
