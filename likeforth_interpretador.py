@@ -1,4 +1,5 @@
 import numpy as np
+from numbers import Number
 
 class Stack:
     def __init__(self):
@@ -346,7 +347,11 @@ class LikeForthInterpreter(object):
     # Remove o elemento do topo de D e o exibe na tela
     def dot(self):
         D, R = self.fvm.stacks()
-        print( int(D.pop()), end=' ')
+        a = D.pop()
+        if(a == int(a)):
+            print( int(a), end=' ')
+        else:
+            print( a, end=' ')
         return True
     
     # Exibe as pilhas na tela
@@ -366,10 +371,13 @@ class LikeForthInterpreter(object):
     # Lê um número real do teclado e o insere na pilha D
     def acceptn(self):
         D, R = self.fvm.stacks()
-        r = input()
-        D.push(r)
-        return True
-    
+        try:
+            r = float(input())
+            D.push(r)
+            return True
+        except ValueError:
+            return False
+
     # Registra novas palavras criadas pelo usuário
     def fcompile(self, tokens):
         keyword = tokens[0]
@@ -436,14 +444,22 @@ class LikeForthInterpreter(object):
 
         if tokens[0] == '."': # Exibe s1 s2 ... sn na tela
             try:
-                sn = tokens.index('."') + 1
+                n = tokens.index('."') + 1
                 s = ""
-                while(tokens[sn] != '"'):
-                    s += f"{tokens[sn]} "
-                    sn+=1
+                while(tokens[n] != '"'):
+                    if(isinstance(tokens[n], Number)):
+                        if(tokens[n] == int(tokens[n])):
+                            s += f"{int(tokens[n])} "
+                        else:
+                            s += f"{tokens[n]} "
+                    else:
+                        s += f"{tokens[n]} "
+                    n+=1
                 print(s, end='')
-                close_pos = sn + 1
+                close_pos = n + 1
                 return self.interpret(tokens[close_pos:])
+            except IndexError:
+                return False
             except ValueError:
                 return False
 
@@ -503,8 +519,12 @@ class LikeForthInterpreter(object):
                 
         else: #Se a palavra for um número
             D, R = self.fvm.stacks()
-            D.push(tokens[0])
-            return self.interpret(tokens[1:])
+            try:
+                t = float(tokens[0])
+                D.push(tokens[0])
+                return self.interpret(tokens[1:])
+            except ValueError:
+                return False
             
         return False
 
